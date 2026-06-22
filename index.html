@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brand24 Mention Risk Radar</title>
+  <meta name="description" content="A free interactive Brand24 mention risk radar for estimating brand conversation urgency and saving monitoring snapshots in your browser." />
+  <style>
+    :root{
+      --bg:#0f172a; --card:#1e293b; --line:#334155;
+      --text:#f1f5f9; --muted:#94a3b8; --accent:#f97316; --accent-2:#16a34a;
+      --soft:#0f1a2e;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; font-family:Arial,Helvetica,sans-serif;
+      background:radial-gradient(1200px 600px at 50% -10%,#1b2740,transparent),var(--bg);
+      color:var(--text); display:flex; flex-direction:column; align-items:center; padding:24px;
+    }
+    h1{font-size:clamp(24px,5vw,38px); margin:32px 0 4px; text-align:center}
+    .sub{color:var(--muted); margin:0 0 28px; text-align:center; max-width:680px; line-height:1.55}
+    .wrap{width:100%; max-width:860px; display:grid; grid-template-columns:1fr 1fr; gap:18px}
+    .card{
+      background:var(--card); border:1px solid var(--line); border-radius:16px;
+      padding:24px; box-shadow:0 20px 40px rgba(0,0,0,.35);
+    }
+    label{display:block; text-align:left; color:var(--muted); font-size:13px; margin:14px 0 6px}
+    input, select{
+      width:100%; padding:13px 12px; border-radius:10px; border:1px solid var(--line);
+      background:#0f1a2e; color:var(--text); font-size:15px; outline:none;
+    }
+    input:focus, select:focus{border-color:var(--accent)}
+    .stats{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:0 0 18px}
+    .stat{background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:16px 10px; text-align:center}
+    .stat .label{font-size:13px; color:var(--muted); margin-bottom:6px}
+    .stat .value{font-size:30px; font-weight:700}
+    .result{
+      background:var(--soft); border:1px solid var(--line); border-radius:12px;
+      padding:16px; margin-top:16px; line-height:1.5;
+    }
+    .result strong{color:var(--text)}
+    button{
+      width:100%; padding:14px 20px; border:none; border-radius:10px; cursor:pointer;
+      font-size:16px; font-weight:700; color:#052e16; background:var(--accent-2);
+      transition:transform .05s ease, filter .2s ease; margin-top:14px;
+    }
+    button:hover{filter:brightness(1.05)}
+    button:active{transform:translateY(1px)}
+    .secondary{background:transparent; color:var(--muted); border:1px solid var(--line); font-weight:600}
+    .secondary:hover{color:var(--text)}
+    .cta{
+      display:block; margin:20px auto 0; width:100%; max-width:860px; text-decoration:none;
+      background:var(--accent); color:#111827; font-weight:800; text-align:center;
+      padding:15px 18px; border-radius:12px;
+    }
+    .cta:hover{filter:brightness(1.05)}
+    .history{margin-top:16px; display:grid; gap:10px}
+    .item{background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:12px; color:var(--muted); font-size:14px}
+    .item strong{color:var(--text)}
+    footer{color:var(--muted); font-size:12px; margin-top:28px; max-width:720px; text-align:center; line-height:1.5}
+    @media(max-width:760px){
+      .wrap{grid-template-columns:1fr}
+      .card{padding:20px}
+    }
+  </style>
+</head>
+<body>
+  <h1>📡 Brand24 Mention Risk Radar</h1>
+  <p class="sub">Estimate how urgent today’s brand conversation feels, then save a monitoring snapshot. Your radar history is stored locally in this browser.</p>
+
+  <div class="wrap">
+    <div class="card">
+      <label for="brand">Brand or keyword</label>
+      <input id="brand" type="text" placeholder="Example: Acme AI" />
+
+      <label for="mentions">Mentions found today</label>
+      <input id="mentions" type="number" min="0" placeholder="Example: 120" />
+
+      <label for="negative">Negative sentiment %</label>
+      <input id="negative" type="number" min="0" max="100" placeholder="Example: 18" />
+
+      <label for="reach">High-reach mentions</label>
+      <input id="reach" type="number" min="0" placeholder="Example: 4" />
+
+      <label for="topic">Main conversation type</label>
+      <select id="topic">
+        <option value="launch">Product launch</option>
+        <option value="support">Support issue</option>
+        <option value="competitor">Competitor comparison</option>
+        <option value="crisis">Potential crisis</option>
+        <option value="praise">Positive buzz</option>
+      </select>
+
+      <button id="scanBtn">Calculate Risk Score</button>
+      <button class="secondary" id="saveBtn">Save Snapshot</button>
+      <button class="secondary" id="resetBtn">Reset Radar</button>
+    </div>
+
+    <div class="card">
+      <div class="stats">
+        <div class="stat"><div class="label">Risk Score</div><div class="value" id="score">0</div></div>
+        <div class="stat"><div class="label">Priority</div><div class="value" id="priority">Low</div></div>
+      </div>
+
+      <div class="result" id="advice">
+        Add today's mention numbers to see whether your team should monitor, respond, or escalate.
+      </div>
+
+      <div class="history" id="history"></div>
+    </div>
+  </div>
+
+  <a class="cta" href="https://tinyurl.com/49xfd23z" target="_blank" rel="noopener sponsored">
+    🎁 Get Brand24: Up to 20% OFF + 14-day trial →
+  </a>
+
+  <footer>
+    Built for marketers tracking brand mentions with Brand24. This page contains an affiliate link — we may earn a commission at no extra cost to you. Not affiliated with or endorsed by Brand24.
+  </footer>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const keys = {
+      brand: "brand24_radar_brand",
+      mentions: "brand24_radar_mentions",
+      negative: "brand24_radar_negative",
+      reach: "brand24_radar_reach",
+      topic: "brand24_radar_topic",
+      history: "brand24_radar_history"
+    };
+
+    let current = { score: 0, priority: "Low", advice: "" };
+
+    function read(key, fallback){
+      const value = localStorage.getItem(key);
+      return value === null ? fallback : value;
+    }
+
+    function load(){
+      $("brand").value = read(keys.brand, "");
+      $("mentions").value = read(keys.mentions, "");
+      $("negative").value = read(keys.negative, "");
+      $("reach").value = read(keys.reach, "");
+      $("topic").value = read(keys.topic, "launch");
+      calculate();
+      renderHistory();
+    }
+
+    function persistInputs(){
+      localStorage.setItem(keys.brand, $("brand").value);
+      localStorage.setItem(keys.mentions, $("mentions").value);
+      localStorage.setItem(keys.negative, $("negative").value);
+      localStorage.setItem(keys.reach, $("reach").value);
+      localStorage.setItem(keys.topic, $("topic").value);
+    }
+
+    function topicBoost(topic){
+      const boosts = { launch: 6, support: 14, competitor: 10, crisis: 26, praise: -6 };
+      return boosts[topic] || 0;
+    }
+
+    function calculate(){
+      persistInputs();
+
+      const mentions = Math.max(0, parseInt($("mentions").value || "0", 10));
+      const negative = Math.min(100, Math.max(0, parseInt($("negative").value || "0", 10)));
+      const reach = Math.max(0, parseInt($("reach").value || "0", 10));
+      const topic = $("topic").value;
+
+      let score = Math.round((mentions * 0.35) + (negative * 1.15) + (reach * 7) + topicBoost(topic));
+      score = Math.max(0, Math.min(100, score));
+
+      let priority = "Low";
+      let advice = "Keep monitoring. Log the trend and review again after your next mention refresh.";
+
+      if(score >= 75){
+        priority = "High";
+        advice = "Escalate now. Check top sources, sort by reach and sentiment, assign owners, and prepare a response before the story spreads.";
+      } else if(score >= 45){
+        priority = "Medium";
+        advice = "Watch closely. Review negative mentions, tag recurring topics, and respond to high-reach posts while the conversation is still manageable.";
+      } else if(score >= 20){
+        priority = "Warm";
+        advice = "There is movement, but no fire yet. Save this snapshot and compare it with tomorrow's mention volume and sentiment.";
+      }
+
+      current = { score, priority, advice };
+      $("score").innerText = score;
+      $("priority").innerText = priority;
+      $("advice").innerHTML = "<strong>" + priority + " priority:</strong> " + advice;
+    }
+
+    function saveSnapshot(){
+      calculate();
+      const brand = $("brand").value.trim() || "Untitled keyword";
+      const history = JSON.parse(read(keys.history, "[]"));
+      history.unshift({
+        brand,
+        score: current.score,
+        priority: current.priority,
+        date: new Date().toLocaleString()
+      });
+      localStorage.setItem(keys.history, JSON.stringify(history.slice(0, 5)));
+      renderHistory();
+    }
+
+    function renderHistory(){
+      const history = JSON.parse(read(keys.history, "[]"));
+      $("history").innerHTML = history.length
+        ? history.map(item => `<div class="item"><strong>${item.brand}</strong><br>${item.priority} priority · Score ${item.score}<br>${item.date}</div>`).join("")
+        : `<div class="item">No saved snapshots yet. Run a scan and save your first radar check.</div>`;
+    }
+
+    function resetRadar(){
+      if(!confirm("Reset your Brand24 radar inputs and saved snapshots?")) return;
+      Object.values(keys).forEach(key => localStorage.removeItem(key));
+      $("brand").value = "";
+      $("mentions").value = "";
+      $("negative").value = "";
+      $("reach").value = "";
+      $("topic").value = "launch";
+      current = { score: 0, priority: "Low", advice: "" };
+      $("score").innerText = "0";
+      $("priority").innerText = "Low";
+      $("advice").innerText = "Add today's mention numbers to see whether your team should monitor, respond, or escalate.";
+      renderHistory();
+    }
+
+    ["brand","mentions","negative","reach","topic"].forEach(id => {
+      $(id).addEventListener("input", calculate);
+      $(id).addEventListener("change", calculate);
+    });
+
+    $("scanBtn").addEventListener("click", calculate);
+    $("saveBtn").addEventListener("click", saveSnapshot);
+    $("resetBtn").addEventListener("click", resetRadar);
+
+    load();
+  </script>
+</body>
+</html>
